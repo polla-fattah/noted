@@ -2,25 +2,6 @@
 
 set -e
 
-#
-# START FUNCTIONS (alphabetical order)
-#
-
-checkForEnvVariable() {
-  varval=${!1}
-  if [ ! "$(echo $varval)" ]; then
-    cat <<EOF
-
-ERROR
-
-    A required environment variable is not available:
-    $1
-
-EOF
-    exit 1
-  fi
-}
-
 create() {
   newEntry() {
     headerText="$@"
@@ -35,19 +16,33 @@ create() {
     TEMPLATE_TEXT=$(<"${NOTED_TEMPLATE_FILE}")
   else
     read -r -d '' TEMPLATE_TEXT <<EOF || true
----
-TIMESTAMP
-
-# HEADERTEXT
-
-
----
+TIMESTAMP: HEADERTEXT
 EOF
   fi
   mkdir -p "${NOTED_MARKDOWN_HOME}"
   markdownFile "${currDate}"
-  if [[ -n "${OPTIONAL_FILE}" ]]; then
-    markdownFile="${NOTED_MARKDOWN_HOME}/${OPTIONAL_FILE}"
+  if [[ ! -f "${markdownFile}" ]]; then
+	echo "---" >> $markdownFile
+	echo "title: ${currDate}" >> $markdownFile
+	echo "date: ${currDate} ${timestamp}" >> $markdownFile
+	echo "description: Here is a little bit about my post." >> $markdownFile
+	echo "type: post" >> $markdownFile
+	echo "# cover_image: ./images/img.jpg" >> $markdownFile
+	echo "published: true" >> $markdownFile
+	echo "tags: [Diary] # , Friday, Picnic, Book, MovieNight" >> $markdownFile
+	echo "---" >> $markdownFile
+	echo "" >> $markdownFile
+	echo "# ${currDate}" >> $markdownFile
+	echo "" >> $markdownFile
+	echo "## What I have accomplished" >> $markdownFile
+	echo "" >> $markdownFile
+	echo "## What I have learned" >> $markdownFile
+	echo "" >> $markdownFile
+	echo "## What should I do tomorrow" >> $markdownFile
+	echo "" >> $markdownFile
+	echo "## My Ideas during the day !" >> $markdownFile
+	echo "" >> $markdownFile
+	echo "## Today's Log" >> $markdownFile
   fi
   touch "${markdownFile}"
   if [ -n "${OPTIONAL_NOTE}" ]; then
@@ -61,7 +56,7 @@ EOF
 }
 
 edit() {
-  open "${markdownFile}"
+  vim "${markdownFile}"
 }
 
 loadProperties() {
@@ -71,7 +66,10 @@ loadProperties() {
 }
 
 markdownFile() {
-  markdownFile="${NOTED_MARKDOWN_HOME}/${1}.md"
+  YEAR="`date +%Y`"
+  MONTH="`date +%m`"
+  markdownFile="${NOTED_MARKDOWN_HOME}/${YEAR}/${MONTH}/${1}.md"
+
 }
 
 ngrep() {
@@ -98,14 +96,14 @@ version() {
 }
 
 view() {
-  open "${htmlFile}"
+  less "${htmlFile}"
 }
 
 #
 # END FUNCTIONS
 #
 
-VERSION="0.0.2"
+VERSION="0.0.3"
 
 #
 # Default Settings
@@ -118,10 +116,10 @@ CONFIG_FILE=$HOME/.notedconfig
 # name files like this
 NOTED_FILE_NAME_DATE_FORMAT="+%Y-%m-%d"
 # timestamp entries within the files like this
-NOTED_TIMESTAMP_FORMAT="+%H:%M:%S UTC"
+NOTED_TIMESTAMP_FORMAT="+%H:%M:%S"
 NOTED_TEMPLATE_FILE=""
 # keep the directory where notes are stored here
-NOTED_MARKDOWN_HOME=$HOME/Documents/notes
+NOTED_MARKDOWN_HOME=D:/Polla/PollaFattah/Life/personalBlog
 
 #
 # Override with any additional settings
@@ -150,7 +148,6 @@ elif [[ "${subcommand}" == "grep" ]]; then
   ngrep "$@"
 else
   # create / default
-  OPTIONAL_FILE=""
   OPTIONAL_NOTE=""
   if [[ "${subcommand}" == "create" ]]; then
     shift
@@ -158,8 +155,5 @@ else
   if [[ -n "$1" ]]; then
     OPTIONAL_NOTE="$1"
   fi
-  if [[ -n "$2" ]]; then
-    OPTIONAL_FILE="$2"
-  fi
-  create "${OPTIONAL_NOTE}" "${OPTIONAL_FILE}"
+  create "${OPTIONAL_NOTE}"
 fi
