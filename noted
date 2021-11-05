@@ -96,7 +96,7 @@ version() {
 }
 
 view() {
-  less "${htmlFile}"
+  less "${markdownFile}"
 }
 
 #
@@ -136,7 +136,15 @@ if  [[ "${subcommand}" == "config" ]]; then
   outputConfig
 elif [[ "${subcommand}" == "version" ]]; then
   version
-elif [[ "${subcommand}" == "edit" ]] || [[ "${subcommand}" == "view" ]]; then
+elif [[ "${subcommand}" == "view" ]]; then
+  arg="$2"
+  if [[ -z "${arg}" ]]; then
+    arg="${currDate}"
+  fi
+  markdownFile "${arg}"
+  echo "${markdownFile}"
+  view "${markdownFile}"
+elif [[ "${subcommand}" == "edit" ]]; then
   arg="$2"
   if [[ -z "${arg}" ]]; then
     arg="${currDate}"
